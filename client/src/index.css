@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Variables ───────────────────────────────────────────────── */
+:root {
+  --bg:        #0B1220;
+  --surface:   #111827;
+  --card:      #1E293B;
+  --border:    rgba(255,255,255,0.08);
+  --blue:      #2563EB;
+  --blue-l:    #3B82F6;
+  --gold:      #F59E0B;
+  --gold-l:    #FACC15;
+  --danger:    #EF4444;
+  --success:   #22C55E;
+  --text:      #F8FAFC;
+  --text-sub:  #94A3B8;
+  --text-muted:#475569;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+}
+
+/* ── Base reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root { position: relative; z-index: 1; }
+
+/* ── Typography ──────────────────────────────────────────────────── */
+.font-display { font-family: 'Outfit', sans-serif; }
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F59E0B 0%, #FACC15 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-blue {
+  background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glass panels ────────────────────────────────────────────────── */
+.glass {
+  background: rgba(30,41,59,0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.glass-dark {
+  background: rgba(11,18,32,0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ── Glow utilities ──────────────────────────────────────────────── */
+.glow-blue  { box-shadow: 0 0 20px rgba(37,99,235,0.4), 0 0 40px rgba(37,99,235,0.15); }
+.glow-gold  { box-shadow: 0 0 24px rgba(245,158,11,0.5), 0 0 48px rgba(245,158,11,0.2); }
+.glow-red   { box-shadow: 0 0 20px rgba(239,68,68,0.4); }
+.glow-green { box-shadow: 0 0 20px rgba(34,197,94,0.4); }
+
+/* ── Neon border utilities ───────────────────────────────────────── */
+.border-glow-blue {
+  border: 1px solid rgba(37,99,235,0.5);
+  box-shadow: inset 0 0 12px rgba(37,99,235,0.08), 0 0 12px rgba(37,99,235,0.2);
+}
+.border-glow-gold {
+  border: 1px solid rgba(245,158,11,0.5);
+  box-shadow: inset 0 0 12px rgba(245,158,11,0.08), 0 0 12px rgba(245,158,11,0.2);
+}
+
+/* ── Shimmer effect ──────────────────────────────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255,255,255,0.06) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.4); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(37,99,235,0.6); }
+
+/* ── Selection ───────────────────────────────────────────────────── */
+::selection { background: rgba(37,99,235,0.3); color: white; }
+
+/* ── Focus rings ─────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid var(--blue-l); outline-offset: 2px; }
+
+/* ── Input ───────────────────────────────────────────────────────── */
+input { caret-color: var(--gold); }
+input::placeholder { color: var(--text-muted); }
+
+/* ── No select on cards ──────────────────────────────────────────── */
+.no-select { user-select: none; -webkit-user-select: none; }
+
+/* ── Perspective container ───────────────────────────────────────── */
+.perspective-1000 { perspective: 1000px; }
+
+/* ── Grid pattern overlay ────────────────────────────────────────── */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ── Stat row hover ──────────────────────────────────────────────── */
+.stat-row { transition: all 0.15s ease; }
+.stat-row:hover { transform: translateX(3px); }
+
+/* ── No scrollbar ────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
