@@ -1,3 +1,4 @@
+import dns from "dns";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -7,6 +8,10 @@ import dotenv from "dotenv";
 import apiRouter from "./routes/api";
 import { registerSocketHandlers } from "./socket/socketHandler";
 
+// Local ISP DNS may not support SRV records needed for mongodb+srv://
+// Force Node.js to use public DNS that does
+dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+
 dotenv.config();
 
 const app = express();
@@ -14,9 +19,16 @@ const httpServer = createServer(app);
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
+const allowedOrigins = [
+  CLIENT_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://ipl-card-game.amangla.xyz",
+];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: [CLIENT_URL, "http://localhost:5173", "http://localhost:3000"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -24,7 +36,7 @@ const io = new Server(httpServer, {
   pingInterval: 25000,
 });
 
-app.use(cors({ origin: [CLIENT_URL, "http://localhost:5173"], credentials: true }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use("/api", apiRouter);
 
