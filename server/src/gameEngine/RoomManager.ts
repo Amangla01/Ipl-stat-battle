@@ -93,6 +93,20 @@ export class RoomManager {
     return room.save();
   }
 
+  async kickPlayer(roomCode: string, userId: string): Promise<IRoom | null> {
+    const room = await Room.findOne({ roomCode });
+    if (!room) return null;
+
+    room.players = room.players.filter((p) => p.userId !== userId);
+
+    if (room.players.length === 0) {
+      await Room.deleteOne({ roomCode });
+      return null;
+    }
+
+    return room.save();
+  }
+
   async markDisconnected(socketId: string): Promise<IRoom | null> {
     const room = await Room.findOne({ "players.socketId": socketId });
     if (!room) return null;

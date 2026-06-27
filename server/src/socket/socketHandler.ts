@@ -83,6 +83,32 @@ export function registerSocketHandlers(io: Server, socket: Socket) {
     }
   });
 
+  // ─── KICK PLAYER ─────────────────────────────────────────────────────────
+  socket.on("kick-player", async ({ roomCode, hostId, targetUserId }) => {
+    try {
+      const room = await roomManager.getRoomByCode(roomCode);
+      if (!room || room.hostId !== hostId) return;
+      if (room.gameStatus !== "waiting") return;
+
+      const targetPlayer = room.players.find((p) => p.userId === targetUserId);
+      if (!targetPlayer) return;
+
+      // Notify the kicked socket before removing
+      const targetSocket = io.sockets.sockets.get(targetPlayer.socketId);
+      if (targetSocket) {
+        targetSocket.emit("you-were-kicked", { message: "You were removed from the room by the host." });
+        targetSocket.leave(roomCode);
+      }
+
+      const updatedRoom = await roomManager.kickPlayer(roomCode, targetUserId);
+      if (updatedRoom) {
+        io.to(roomCode).emit("player-left", { userId: targetUserId, room: sanitizeRoom(updatedRoom) });
+      }
+    } catch (err) {
+      socket.emit("error", { message: "Failed to kick player" });
+    }
+  });
+
   // ─── GAME START ──────────────────────────────────────────────────────────
   socket.on("game-start", async ({ roomCode, userId }) => {
     try {

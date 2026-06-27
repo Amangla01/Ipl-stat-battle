@@ -108,104 +108,124 @@ export function GamePage() {
         )}
       </div>
 
-      {/* ── MIDDLE: CARDS — equal width per player ──────────────────── */}
-      <div className="relative z-10 flex-1 min-h-0 flex items-stretch px-2 py-2 gap-2 overflow-hidden">
+      {/* ── MIDDLE: CARDS ──────────────────────────────────────────────── */}
+      {(() => {
+        const playerCount = 1 + otherPlayers.length;
+        // Layout classes per player count
+        const containerClass =
+          playerCount === 2
+            ? "relative z-10 flex-1 min-h-0 flex items-center justify-center px-4 py-2 gap-3 overflow-hidden"
+            : playerCount === 3
+            ? "relative z-10 flex-1 min-h-0 flex items-stretch px-1.5 py-2 gap-1.5 overflow-hidden"
+            : "relative z-10 flex-1 min-h-0 grid grid-cols-2 auto-rows-fr px-2 py-2 gap-2 overflow-hidden";
 
-        {/* Turn indicator chip */}
-        <AnimatePresence>
-          {phase === "dealing" && (
-            <motion.div
-              initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="absolute top-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ background: "rgba(30,41,59,0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)" }}
-            >
-              <motion.span animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}>🃏</motion.span>
-              <span className="text-xs text-slate-300 font-medium">Dealing cards…</span>
-            </motion.div>
-          )}
-          {roundState && phase === "selecting" && (
-            <motion.div
-              initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="absolute top-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{
-                background: isMyTurn ? "rgba(37,99,235,0.2)" : "rgba(30,41,59,0.75)",
-                backdropFilter: "blur(12px)",
-                border: `1px solid ${isMyTurn ? "rgba(37,99,235,0.5)" : "rgba(255,255,255,0.08)"}`,
-                boxShadow: isMyTurn ? "0 0 12px rgba(37,99,235,0.25)" : "none",
-              }}
-            >
-              {(() => {
-                const tp = room.players.find((p) => p.userId === roundState.currentTurnPlayerId);
-                return isMyTurn ? (
-                  <>
-                    <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.6, repeat: Infinity }} className="text-sm">⚡</motion.span>
-                    <span className="text-xs text-blue-300 font-semibold">Your turn — pick a stat!</span>
-                  </>
+        const colClass =
+          playerCount === 2
+            ? "flex flex-col gap-1 w-full max-w-[260px]"
+            : "flex flex-col gap-1 min-w-0 min-h-0";
+
+        const allCols = [
+          // "Me" column
+          <div key="me" className={colClass}>
+            <span className="text-[9px] text-blue-400 uppercase tracking-widest font-bold text-center flex-shrink-0">You</span>
+            <div className="flex-1 min-h-0">
+              <AnimatePresence mode="wait">
+                {myCard && roundState ? (
+                  <PlayerCard
+                    key={myCard._id}
+                    card={myCard}
+                    selectedStats={roundState.selectedStats}
+                    statLabels={roundState.statLabels}
+                    isRevealed={phase === "revealing" || phase === "result"}
+                    isWinner={(iAmWinner || iAmRevealWinner) && (phase === "revealing" || phase === "result")}
+                    winnerStat={revealState?.selectedStat}
+                    size="compact"
+                    dealDelay={0}
+                  />
                 ) : (
-                  <>
-                    <img src={tp?.avatar} alt={tp?.username} className="w-4 h-4 rounded-full"
-                      onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${tp?.username?.[0]}&size=32&bold=true&background=random&color=fff`; }}
-                    />
-                    <span className="text-xs text-slate-300 font-medium">{tp?.username} is choosing…</span>
-                  </>
-                );
-              })()}
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  <DealingPlaceholder />
+                )}
+              </AnimatePresence>
+            </div>
+          </div>,
+          // Opponent columns
+          ...otherPlayers.map((p, i) => {
+            const theirCard = revealState?.cards?.[p.userId];
+            const isWinner = revealState?.winners?.includes(p.userId) ?? false;
+            const isRevealPhase = phase === "revealing" || phase === "result";
+            return (
+              <div key={p.userId} className={colClass}>
+                <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold text-center flex-shrink-0 truncate px-1">
+                  {p.username}
+                </span>
+                <div className="flex-1 min-h-0">
+                  <FlippingCard
+                    card={theirCard}
+                    isRevealed={isRevealPhase}
+                    selectedStats={roundState?.selectedStats || []}
+                    statLabels={roundState?.statLabels}
+                    isWinner={isWinner}
+                    winnerStat={revealState?.selectedStat}
+                    playerName={p.username}
+                    avatar={p.avatar}
+                    flipDelay={i * 0.15}
+                    size="compact"
+                  />
+                </div>
+              </div>
+            );
+          }),
+        ];
 
-        {/* My card — equal flex share */}
-        <div className="flex-1 min-w-0 flex flex-col gap-1">
-          <span className="text-[9px] text-blue-400 uppercase tracking-widest font-bold text-center flex-shrink-0">You</span>
-          <div className="flex-1 min-h-0">
-            <AnimatePresence mode="wait">
-              {myCard && roundState ? (
-                <PlayerCard
-                  key={myCard._id}
-                  card={myCard}
-                  selectedStats={roundState.selectedStats}
-                  statLabels={roundState.statLabels}
-                  isRevealed={phase === "revealing" || phase === "result"}
-                  isWinner={(iAmWinner || iAmRevealWinner) && (phase === "revealing" || phase === "result")}
-                  winnerStat={revealState?.selectedStat}
-                  size="compact"
-                  dealDelay={0}
-                />
-              ) : (
-                <DealingPlaceholder />
+        return (
+          <div className={containerClass}>
+            {/* Turn/dealing indicator */}
+            <AnimatePresence>
+              {phase === "dealing" && (
+                <motion.div
+                  initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="absolute top-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full"
+                  style={{ background: "rgba(30,41,59,0.85)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)" }}
+                >
+                  <motion.span animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}>🃏</motion.span>
+                  <span className="text-xs text-slate-300 font-medium">Dealing cards…</span>
+                </motion.div>
+              )}
+              {roundState && phase === "selecting" && (
+                <motion.div
+                  initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="absolute top-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full"
+                  style={{
+                    background: isMyTurn ? "rgba(37,99,235,0.2)" : "rgba(30,41,59,0.75)",
+                    backdropFilter: "blur(12px)",
+                    border: `1px solid ${isMyTurn ? "rgba(37,99,235,0.5)" : "rgba(255,255,255,0.08)"}`,
+                    boxShadow: isMyTurn ? "0 0 12px rgba(37,99,235,0.25)" : "none",
+                  }}
+                >
+                  {(() => {
+                    const tp = room.players.find((p) => p.userId === roundState.currentTurnPlayerId);
+                    return isMyTurn ? (
+                      <>
+                        <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.6, repeat: Infinity }} className="text-sm">⚡</motion.span>
+                        <span className="text-xs text-blue-300 font-semibold">Your turn — pick a stat!</span>
+                      </>
+                    ) : (
+                      <>
+                        <img src={tp?.avatar} alt={tp?.username} className="w-4 h-4 rounded-full"
+                          onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${tp?.username?.[0]}&size=32&bold=true&background=random&color=fff`; }}
+                        />
+                        <span className="text-xs text-slate-300 font-medium">{tp?.username} is choosing…</span>
+                      </>
+                    );
+                  })()}
+                </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        </div>
 
-        {/* Opponent cards — one flex-1 column each, same width as "me" */}
-        {otherPlayers.map((p, i) => {
-          const theirCard = revealState?.cards?.[p.userId];
-          const isWinner = revealState?.winners?.includes(p.userId) ?? false;
-          const isRevealPhase = phase === "revealing" || phase === "result";
-          return (
-            <div key={p.userId} className="flex-1 min-w-0 flex flex-col gap-1">
-              <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold text-center flex-shrink-0 truncate px-1">
-                {p.username}
-              </span>
-              <div className="flex-1 min-h-0">
-                <FlippingCard
-                  card={theirCard}
-                  isRevealed={isRevealPhase}
-                  selectedStats={roundState?.selectedStats || []}
-                  statLabels={roundState?.statLabels}
-                  isWinner={isWinner}
-                  winnerStat={revealState?.selectedStat}
-                  playerName={p.username}
-                  avatar={p.avatar}
-                  flipDelay={i * 0.15}
-                  size="compact"
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            {allCols}
+          </div>
+        );
+      })()}
 
       {/* ── BOTTOM: STAT SELECTOR + EMOJIS ─────────────────────────── */}
       <div

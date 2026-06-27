@@ -11,7 +11,7 @@ import { backgroundMusic } from "../hooks/useBackgroundMusic";
 export function LobbyPage() {
   const { roomCode: _paramCode } = useParams();
   const navigate = useNavigate();
-  const { startGame, leaveRoom, markReady } = useSocketEvents();
+  const { startGame, leaveRoom, markReady, kickPlayer } = useSocketEvents();
   const { room, userId, username, roomCode, phase } = useGameStore();
 
   useEffect(() => {
@@ -198,6 +198,20 @@ export function LobbyPage() {
                           <span className="text-xs text-slate-600">Waiting…</span>
                         )}
                       </div>
+
+                      {/* Kick button — host only, not for self */}
+                      {isHost && !isMe && (
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => kickPlayer(player.userId)}
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-xs transition-colors"
+                          style={{ background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.25)" }}
+                          title="Kick player"
+                        >
+                          ✕
+                        </motion.button>
+                      )}
                     </motion.div>
                   );
                 })}

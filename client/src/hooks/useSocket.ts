@@ -109,6 +109,12 @@ export function useSocketEvents() {
       console.error("Socket error:", message);
     });
 
+    socket.on("you-were-kicked", () => {
+      store.reset();
+      navigate("/");
+      alert("You were removed from the room by the host.");
+    });
+
     return () => {
       socket.off("room-created");
       socket.off("room-joined");
@@ -130,6 +136,7 @@ export function useSocketEvents() {
       socket.off("emoji-received");
       socket.off("reconnect-success");
       socket.off("error");
+      socket.off("you-were-kicked");
     };
   }, []);
 
@@ -211,5 +218,17 @@ export function useSocketEvents() {
     });
   }, [store.roomCode, store.userId]);
 
-  return { createRoom, joinRoom, startGame, selectStat, sendEmoji, leaveRoom, markReady };
+  const kickPlayer = useCallback(
+    (targetUserId: string) => {
+      const socket = getSocket();
+      socket.emit("kick-player", {
+        roomCode: store.roomCode,
+        hostId: store.userId,
+        targetUserId,
+      });
+    },
+    [store.roomCode, store.userId]
+  );
+
+  return { createRoom, joinRoom, startGame, selectStat, sendEmoji, leaveRoom, markReady, kickPlayer };
 }
